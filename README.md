@@ -100,7 +100,7 @@ Main hook providing selection functionality.
 |----------|------|-------------|
 | `selected` | `T[]` | Currently selected items |
 | `isSelected` | `(item: T) => boolean` | Check if item is selected |
-| `onClick` | `(event: any, item: T) => void` | Click handler for items |
+| `onClick` | `(event: MouseEventHandler<HTMLElement>, item: T) => void` | Click handler for items |
 | `clear` | `() => void` | Clear all selection |
 | `add` | `(items: T[]) => void` | Add items to selection |
 | `remove` | `(items: T[]) => void` | Remove items from selection |
@@ -114,7 +114,7 @@ Convenience hook for individual item components.
 | Property | Type | Description |
 |----------|------|-------------|
 | `isSelected` | `boolean` | Whether this item is selected |
-| `onClick` | `(event: any) => void` | Pre-configured click handler |
+| `onClick` | `(event: MouseEventHandler<HTMLElement>) => void` | Pre-configured click handler |
 
 ### `useKeyboardSelection<T>(props)`
 
@@ -131,7 +131,7 @@ Low-level hook that can be used without the provider. Requires manual prop drill
 |----------|------|-------------|
 | `selected` | `T[]` | Currently selected items |
 | `isSelected` | `(item: T) => boolean` | Check if item is selected |
-| `onClick` | `(event: any, item: T) => void` | Click handler for items |
+| `onClick` | `(event: MouseEventHandler<HTMLElement>, item: T) => void` | Click handler for items |
 | `clear` | `() => void` | Clear all selection |
 | `add` | `(items: T[]) => void` | Add items to selection |
 | `remove` | `(items: T[]) => void` | Remove items from selection |
