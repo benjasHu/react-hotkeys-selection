@@ -2,6 +2,10 @@
 
 A React library for handling multi-item selection with full keyboard shortcuts and mouse gestures support, similar to native OS experiences.
 
+## Demo
+
+[Storybook Demo](https://benjashu.github.io/react-hotkeys-selection)
+
 ## Features
 
 - ✅ **Multi-selection**: Support for selecting multiple items
