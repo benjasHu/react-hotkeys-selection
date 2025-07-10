@@ -1,7 +1,7 @@
 {
   "name": "react-hotkeys-selection",
   "private": false,
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A React utility for selecting list elements with keyboard, like Windows or macOS",
   "keywords": [
     "react",
