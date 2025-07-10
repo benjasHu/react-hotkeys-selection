@@ -1,12 +1,13 @@
 import { type PropsWithChildren } from 'react'
 import { SelectionContext } from './context'
-import { useKeyboardSelection, type UseKeyboardSelectionProps } from './hooks'
+import { useSelectionCore } from './hooks'
+import type { HotkeysSelectionProps } from './types'
 
 export const SelectionProvider = ({
   children,
   ...props
-}: PropsWithChildren<UseKeyboardSelectionProps<unknown>>) => {
-  const selection = useKeyboardSelection(props)
+}: PropsWithChildren<HotkeysSelectionProps<unknown>>) => {
+  const selection = useSelectionCore(props)
 
   return <SelectionContext.Provider value={selection}>{children}</SelectionContext.Provider>
 }

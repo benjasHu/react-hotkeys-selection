@@ -1,6 +1,12 @@
 # React Hotkeys Selection
 
 A React library for handling multi-item selection with full keyboard shortcuts and mouse gestures support, similar to native OS experiences.
+Use it on:
+
+- ✅ Tables with checkboxes where you need to select rows, such as in GMail.
+- ✅ Image galleries
+- ✅ Lists of folders or files
+- ✅ In any list of items that need selection!
 
 ## Demo
 
@@ -10,9 +16,9 @@ A React library for handling multi-item selection with full keyboard shortcuts a
 
 - ✅ **Multi-selection**: Support for selecting multiple items
 - ⌨️ **Keyboard shortcuts**: Ctrl/Cmd+Click for individual selection, Shift+Click for ranges
-- 🖱️ **Mouse gestures**: Simple click to select
+- 🖱️ **Selection strategy**: Individual selection, toggle selection, or no selection
 - 🎯 **TypeScript**: Fully typed with generic support
-- 🔧 **Flexible**: Configurable selection behaviors
+- 🔧 **Flexible**: Configurable selection behaviors and event handlers in your items
 - 🚀 **Optimized**: Uses memoized callbacks for better performance
 
 ## Installation
@@ -67,11 +73,11 @@ function ItemList() {
 }
 
 function Item({ item }) {
-  const { isSelected, onClick } = useSelectionItem(item)
+  const { isSelected, handleSelection } = useSelectionItem(item)
 
   return (
     <div
-      onClick={onClick}
+      onClick={handleSelection}
       style={{
         backgroundColor: isSelected ? '#e3f2fd' : 'white',
         padding: '8px',
@@ -90,66 +96,55 @@ function Item({ item }) {
 
 Provides selection context to child components.
 
-**Props:**
+**Props:** `HotkeysSelectionProps<T>`
 
 - `initialState: T[]` - Array of selectable items
-- `selectItemsOnClick?: boolean` - Enable click to select (default: `true`)
+- `strategy?: HotkeysSelectionStrategy` - Individual selection `'single'`, toggle selection `'toggle'`, or no selection `'none'` (default: `'single'`)
+- `useCtrlKey?: boolean` - Enable Ctrl/Cmd+Event for individual selection (default: `true`)
+- `useShiftKey?: boolean` - Enable Shift+Event for range selection (default: `true`)
 
 ### `useSelection<T>()`
 
 Main hook providing selection functionality.
 
-**Returns:**
-| Property | Type | Description |
-|----------|------|-------------|
-| `selected` | `T[]` | Currently selected items |
-| `isSelected` | `(item: T) => boolean` | Check if item is selected |
-| `onClick` | `(event: MouseEventHandler<HTMLElement>, item: T) => void` | Click handler for items |
-| `clear` | `() => void` | Clear all selection |
-| `add` | `(items: T[]) => void` | Add items to selection |
-| `remove` | `(items: T[]) => void` | Remove items from selection |
-| `change` | `(addOrRemove: boolean, items: T[]) => void` | Add or remove items based on flag |
+**Returns:** `HotkeysSelectionReturn<T>`
+
+| Property          | Type                                       | Description                 |
+| ----------------- | ------------------------------------------ | --------------------------- |
+| `selected`        | `T[]`                                      | Currently selected items    |
+| `isSelected`      | `(item: T) => boolean`                     | Check if item is selected   |
+| `handleSelection` | `(event: SyntheticEvent, item: T) => void` | Event handler for items     |
+| `clear`           | `() => void`                               | Clear all selection         |
+| `add`             | `(items: T[]) => void`                     | Add items to selection      |
+| `remove`          | `(items: T[]) => void`                     | Remove items from selection |
 
 ### `useSelectionItem<T>(item: T)`
 
 Convenience hook for individual item components.
 
-**Returns:**
+**Returns:** `HotkeysSelectionItemReturn<T>`
 | Property | Type | Description |
 |----------|------|-------------|
 | `isSelected` | `boolean` | Whether this item is selected |
-| `onClick` | `(event: MouseEventHandler<HTMLElement>) => void` | Pre-configured click handler |
+| `handleSelection` | `(event: SyntheticEvent) => void` | Pre-configured event handler |
 
-### `useKeyboardSelection<T>(props)`
+### `useSelectionCore<T>(props)`
 
 Low-level hook that can be used without the provider. Requires manual prop drilling to child components.
 
-**Props:**
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `initialState` | `T[]` | - | Array of selectable items |
-| `selectItemsOnClick` | `boolean` | `true` | Enable click to select/deselect |
+**Props:** `HotkeysSelectionProps<T>`
 
-**Returns:**
-| Property | Type | Description |
-|----------|------|-------------|
-| `selected` | `T[]` | Currently selected items |
-| `isSelected` | `(item: T) => boolean` | Check if item is selected |
-| `onClick` | `(event: MouseEventHandler<HTMLElement>, item: T) => void` | Click handler for items |
-| `clear` | `() => void` | Clear all selection |
-| `add` | `(items: T[]) => void` | Add items to selection |
-| `remove` | `(items: T[]) => void` | Remove items from selection |
-| `change` | `(addOrRemove: boolean, items: T[]) => void` | Add or remove items based on flag |
+**Returns:** `HotkeysSelectionReturn<T>`
 
-> **Note**: When using `useKeyboardSelection` directly, you cannot use `useSelectionItem` as it requires the context provider. You'll need to pass the selection state manually to child components.
+> **Note**: When using `useSelectionCore` directly, you cannot use `useSelectionItem` as it requires the context provider. You'll need to pass the selection state manually to child components.
 
 ## Selection Behaviors
 
 | Interaction          | Behavior                                     |
 | -------------------- | -------------------------------------------- |
-| **Click**            | Select only clicked item, deselect others    |
-| **Ctrl/Cmd + Click** | Toggle clicked item without affecting others |
-| **Shift + Click**    | Select range from last individual click      |
+| **Event**            | Selection by predefined strategy             |
+| **Ctrl/Cmd + Event** | Toggle clicked item without affecting others |
+| **Shift + Event**    | Select range from last individual item       |
 
 ## Advanced Usage
 
@@ -199,14 +194,14 @@ function UserTable() {
 }
 ```
 
-### Using useKeyboardSelection Directly
+### Using useSelectionCore Directly
 
 ```tsx
 function DirectUsage() {
   const items = [
     /* ... */
   ]
-  const selection = useKeyboardSelection({ initialState: items })
+  const selection = useSelectionCore({ initialState: items })
 
   return (
     <div>
@@ -225,7 +220,7 @@ function DirectUsage() {
 function Item({ item, selection }) {
   return (
     <div
-      onClick={(e) => selection.onClick(e, item)}
+      onClick={(e) => selection.handleSelection(e, item)}
       style={{
         backgroundColor: selection.isSelected(item) ? '#e3f2fd' : 'white'
       }}
@@ -234,17 +229,6 @@ function Item({ item, selection }) {
     </div>
   )
 }
-```
-
-### Disable Auto-Selection
-
-```tsx
-<SelectionProvider
-  initialState={items}
-  selectItemsOnClick={false}
->
-  <ManualSelection />
-</SelectionProvider>
 ```
 
 ## Storybook Examples

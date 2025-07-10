@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '../utils'
+import { HOTKEYS_SELECTION_STRATEGY } from './constants'
 import { useSelection } from './context'
-import { type UseKeyboardSelectionProps, useSelectionItem } from './hooks'
+import { useSelectionItem } from './hooks'
 import { MOCK_DATA, MOCK_GRID_DATA } from './mock'
 import { SelectionProvider } from './provider'
+import { HotkeysSelectionProps } from './types'
 
 const meta = {
   title: 'Components/Selection',
@@ -12,35 +14,31 @@ const meta = {
     layout: 'centered'
   },
   argTypes: {
-    selectItemsOnClick: {
+    strategy: {
+      options: Object.values(HOTKEYS_SELECTION_STRATEGY),
+      control: { type: 'select' }
+    },
+    useCtrlKey: {
+      control: { type: 'boolean' }
+    },
+    useShiftKey: {
       control: { type: 'boolean' }
     }
   },
   decorators: [
     (Story, { context }) => {
-      const mock = useMemo(() => {
-        if (context.name === 'Grid') {
-          return MOCK_GRID_DATA
-        } else {
-          return MOCK_DATA
-        }
-      }, [context])
-
       return (
-        <SelectionProvider
-          initialState={context.args.initialState || mock}
-          selectItemsOnClick={context.args.selectItemsOnClick}
-        >
+        <SelectionProvider {...context.args}>
           <Story {...context} />
         </SelectionProvider>
       )
     }
   ]
-} satisfies Meta<UseKeyboardSelectionProps<IListItem>>
+} satisfies Meta<HotkeysSelectionProps<IListItem>>
 
 export default meta
 
-type Story = StoryObj<UseKeyboardSelectionProps<IListItem>>
+type Story = StoryObj<HotkeysSelectionProps<IListItem>>
 
 interface IListItem {
   id: string
@@ -53,11 +51,11 @@ interface ListItemProps {
 }
 
 const ListItem = ({ item, className }: ListItemProps) => {
-  const { isSelected, onClick } = useSelectionItem(item)
+  const { isSelected, handleSelection } = useSelectionItem(item)
 
   return (
     <div
-      onClick={onClick}
+      onClick={handleSelection}
       className={cn(
         'w-full h-10 bg-gray-200 rounded-md flex items-center justify-center text-sm cursor-pointer transition-all select-none font-bold text-gray-700',
         className,
@@ -68,6 +66,13 @@ const ListItem = ({ item, className }: ListItemProps) => {
       <span>{item.title}</span>
     </div>
   )
+}
+
+const BASE_STORIES_CONFIG = {
+  strategy: HOTKEYS_SELECTION_STRATEGY.SINGLE,
+  useCtrlKey: true,
+  useShiftKey: true,
+  initialState: MOCK_DATA
 }
 
 export const Basic: Story = {
@@ -83,10 +88,7 @@ export const Basic: Story = {
       </div>
     )
   },
-  args: {
-    selectItemsOnClick: true,
-    initialState: MOCK_DATA
-  }
+  args: BASE_STORIES_CONFIG
 }
 
 export const Grid: Story = {
@@ -104,7 +106,7 @@ export const Grid: Story = {
     )
   },
   args: {
-    selectItemsOnClick: true,
+    ...BASE_STORIES_CONFIG,
     initialState: MOCK_GRID_DATA
   }
 }
@@ -150,8 +152,5 @@ export const WithControls: Story = {
       </div>
     )
   },
-  args: {
-    selectItemsOnClick: true,
-    initialState: MOCK_DATA
-  }
+  args: BASE_STORIES_CONFIG
 }

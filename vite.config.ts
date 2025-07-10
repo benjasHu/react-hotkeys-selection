@@ -8,7 +8,15 @@ import dts from 'vite-plugin-dts'
 import { peerDependencies } from './package.json'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), dts({ rollupTypes: true, insertTypesEntry: true })],
+  plugins: [
+    react(),
+    tailwindcss(),
+    dts({
+      rollupTypes: true,
+      insertTypesEntry: true,
+      copyDtsFiles: true
+    })
+  ],
   build: {
     target: 'esnext',
     minify: false,

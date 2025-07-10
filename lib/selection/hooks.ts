@@ -1,19 +1,11 @@
-import { useCallback, useState, type MouseEventHandler } from 'react'
+import { useCallback, useState, type SyntheticEvent } from 'react'
+import { HOTKEYS_SELECTION_STRATEGY } from './constants'
 import { useSelection } from './context'
-
-export interface UseKeyboardSelectionProps<T> {
-  initialState: T[]
-  selectItemsOnClick?: boolean
-}
-
-export interface UseKeyboardSelectionReturn<T> {
-  selected: T[]
-  isSelected: (item: T) => boolean
-  onClick: (event: MouseEventHandler<HTMLElement>, item: T) => void
-  clear: () => void
-  add: (items: T[]) => void
-  remove: (items: T[]) => void
-}
+import type {
+  HotkeysSelectionItemReturn,
+  HotkeysSelectionProps,
+  HotkeysSelectionReturn
+} from './types'
 
 // Credits to es-toolkit https://github.com/toss/es-toolkit/blob/main/src/array/difference.ts
 function difference<T>(firstArr: readonly T[], secondArr: readonly T[]): T[] {
@@ -26,10 +18,12 @@ function uniq<T>(arr: readonly T[]): T[] {
   return Array.from(new Set(arr))
 }
 
-export const useKeyboardSelection = <T>({
+export const useSelectionCore = <T>({
   initialState,
-  selectItemsOnClick = true
-}: UseKeyboardSelectionProps<T>): UseKeyboardSelectionReturn<T> => {
+  strategy = HOTKEYS_SELECTION_STRATEGY.SINGLE,
+  useCtrlKey = true,
+  useShiftKey = true
+}: HotkeysSelectionProps<T>): HotkeysSelectionReturn<T> => {
   const [selected, setSelected] = useState<T[]>([])
   const [lastIndividualClick, setLastIndividualClick] = useState<T | null>(null)
   const [lastRangeSelection, setLastRangeSelection] = useState<{
@@ -70,11 +64,11 @@ export const useKeyboardSelection = <T>({
 
   const isSelected = useCallback((item: T) => selected.includes(item), [selected])
 
-  const onClick = useCallback(
+  const handleSelection = useCallback(
     (event: any, item: T) => {
       const isCurrentlySelected = selected.includes(item)
 
-      if (event.nativeEvent.shiftKey && lastIndividualClick !== null) {
+      if (useShiftKey && event.nativeEvent.shiftKey && !!lastIndividualClick) {
         const currentIndex = initialState.findIndex((x) => x === item)
         const lastIndex = initialState.findIndex((x) => x === lastIndividualClick)
 
@@ -102,7 +96,7 @@ export const useKeyboardSelection = <T>({
         }
       }
 
-      if (event.nativeEvent.ctrlKey || event.nativeEvent.metaKey) {
+      if (useCtrlKey && (event.nativeEvent.ctrlKey || event.nativeEvent.metaKey)) {
         setLastIndividualClick(item)
         setLastRangeSelection(null)
 
@@ -111,22 +105,37 @@ export const useKeyboardSelection = <T>({
         return
       }
 
-      if (selectItemsOnClick) {
+      if (strategy === HOTKEYS_SELECTION_STRATEGY.NONE) {
+        return
+      }
+
+      setSelected([])
+      setLastRangeSelection(null)
+      setLastIndividualClick(item)
+
+      change(!isCurrentlySelected, [item])
+
+      if (selected.includes(item)) {
         setSelected([])
-        setLastIndividualClick(item)
+        change(true, [item])
+      }
 
-        change(!isCurrentlySelected, [item])
-
-        if (selected.includes(item)) {
-          setSelected([])
-          change(true, [item])
-        }
+      if (
+        strategy === HOTKEYS_SELECTION_STRATEGY.TOGGLE &&
+        !!lastIndividualClick &&
+        isCurrentlySelected &&
+        !lastRangeSelection
+      ) {
+        setSelected([])
+        setLastIndividualClick(null)
       }
     },
     [
       change,
       initialState,
-      selectItemsOnClick,
+      strategy,
+      useCtrlKey,
+      useShiftKey,
       selected,
       lastIndividualClick,
       setLastIndividualClick,
@@ -141,15 +150,15 @@ export const useKeyboardSelection = <T>({
     remove,
     clear,
     isSelected,
-    onClick
+    handleSelection
   }
 }
 
-export const useSelectionItem = <T = unknown>(item: T) => {
-  const { isSelected, onClick } = useSelection()
+export const useSelectionItem = <T = unknown>(item: T): HotkeysSelectionItemReturn => {
+  const { isSelected, handleSelection } = useSelection()
 
   return {
     isSelected: isSelected(item),
-    onClick: (event: any) => onClick(event, item)
+    handleSelection: (event: SyntheticEvent) => handleSelection(event, item)
   }
 }
