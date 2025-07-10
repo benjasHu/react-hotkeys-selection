@@ -6,7 +6,16 @@ import { useSelection } from './context'
 import { useSelectionItem } from './hooks'
 import { MOCK_DATA, MOCK_GRID_DATA } from './mock'
 import { SelectionProvider } from './provider'
-import { HotkeysSelectionProps } from './types'
+
+type HotkeysSelectionStrategy =
+  (typeof HOTKEYS_SELECTION_STRATEGY)[keyof typeof HOTKEYS_SELECTION_STRATEGY]
+
+interface HotkeysSelectionProps<T> {
+  initialState: T[]
+  strategy: HotkeysSelectionStrategy
+  useCtrlKey?: boolean
+  useShiftKey?: boolean
+}
 
 const meta = {
   title: 'Components/Selection',
